@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1016">
+<meta name="color-scheme" content="dark">
+<title>InfoScroll: facts, football, music and stories</title>
+<meta name="description" content="One endless scroll of facts, football, music and short stories. Install it free and open it like a normal app.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-title" content="InfoScroll">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0b1016;--paper:#f2f4f7;--dim:#b8c0cc;--brass:#d4a94c;--panel:#151c26}
+*{box-sizing:border-box;margin:0}
+html{background:var(--ink)}
+body{background:radial-gradient(circle at 50% -10%,#2a2166,var(--ink) 55%);color:var(--paper);font:17px/1.55 'DM Sans',system-ui,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+:focus-visible{outline:3px solid #fff;outline-offset:3px}
+main{max-width:640px;margin:auto;padding:0 20px 40px}
+.hero{text-align:center;padding:48px 0 30px}
+.hero img{width:92px;height:92px;border-radius:22px;box-shadow:0 14px 34px rgba(0,0,0,.5)}
+h1{font:800 clamp(2.4rem,11vw,3.6rem)/1.02 Fraunces,Georgia,serif;letter-spacing:-.03em;margin:18px 0 10px}
+.tag{color:var(--dim);max-width:30ch;margin:0 auto 26px;font-size:1.1rem}
+button,.alt{font:inherit;cursor:pointer}
+.go{display:block;width:100%;max-width:340px;margin:0 auto;padding:16px;border:0;border-radius:99px;background:#fff;color:var(--ink);font-weight:700;font-size:1.1rem}
+.alt{display:inline-block;margin-top:16px;color:var(--dim);text-underline-offset:4px}
+#st{margin-top:14px;color:#41d9a0;font-weight:500;min-height:1.5em}
+h2{font:800 1.6rem/1.15 Fraunces,Georgia,serif;margin:44px 0 16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{background:var(--panel);border-radius:16px;padding:16px}
+.tile b{display:block;margin-bottom:4px}.tile span{color:var(--dim);font-size:.93rem}
+.shots{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px 20px 18px;margin:0 -20px;scrollbar-width:none}
+.shots::-webkit-scrollbar{display:none}
+.shot{flex:none;width:210px;height:430px;border-radius:26px;border:3px solid #2a3848;overflow:hidden;scroll-snap-align:center;background:var(--panel);position:relative}
+.shot img{width:100%;height:100%;object-fit:cover;display:block}
+.mock{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:16px}
+.mock i{display:inline-block;align-self:flex-start;font-style:normal;font-size:.7rem;font-weight:700;padding:3px 9px;border-radius:99px;background:rgba(255,255,255,.18);margin-bottom:8px}
+.mock b{font:800 1.5rem/1.05 Fraunces,Georgia,serif}
+.mock small{color:var(--dim);margin:4px 0 10px}
+.mock u{display:block;height:6px;border-radius:3px;background:rgba(255,255,255,.28);margin-top:6px;width:100%}
+.mock u:nth-of-type(2){width:86%}.mock u:nth-of-type(3){width:62%}
+.mock .art{position:absolute;top:44px;left:50%;transform:translateX(-50%);width:120px;height:120px;border-radius:12px;background:linear-gradient(135deg,#7d5ae2,#3f68b8);box-shadow:0 12px 28px rgba(0,0,0,.5)}
+.note{color:var(--dim);font-size:.85rem;margin-top:6px}
+ul.pts{list-style:none;padding:0;display:grid;gap:12px}
+ul.pts li{background:var(--panel);border-radius:14px;padding:14px 16px}
+footer{color:var(--dim);font-size:.85rem;text-align:center;margin-top:40px}
+.sheet{position:fixed;inset:0;z-index:10;background:rgba(0,0,0,.65);display:none;align-items:flex-end;justify-content:center}
+.sheet.on{display:flex}
+.card{background:#141b24;border-radius:20px 20px 0 0;width:min(100%,520px);padding:22px 22px calc(26px + env(safe-area-inset-bottom))}
+.card h3{font:800 1.3rem Fraunces,Georgia,serif;margin-bottom:10px}
+.card ol{padding-left:20px;display:grid;gap:8px;color:var(--dim)}.card ol b{color:var(--paper)}
+.card button{margin-top:18px;width:100%;padding:13px;border:0;border-radius:99px;background:#fff;color:var(--ink);font-weight:700}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main>
+  <section class="hero">
+    <img src="icon-192.png" alt="InfoScroll logo">
+    <h1>InfoScroll</h1>
+    <p class="tag">Facts, football, music and short stories in one endless scroll.</p>
+    <button class="go" id="inst">Install app</button>
+    <div id="st" role="status"></div>
+    <a class="alt" href="app.html">Or open it in your browser</a>
+  </section>
+
+  <h2>What’s inside</h2>
+  <div class="grid">
+    <div class="tile"><b>All</b><span>Facts about music, artists, actors and places.</span></div>
+    <div class="tile"><b>Popular</b><span>The most-read articles of the day.</span></div>
+    <div class="tile"><b>News</b><span>Headlines from the last few days.</span></div>
+    <div class="tile"><b>Sports</b><span>Mostly football: clubs, players, stadiums and history.</span></div>
+    <div class="tile"><b>Music</b><span>Songs play as you scroll, with album art and details.</span></div>
+    <div class="tile"><b>Stories</b><span>Classic short stories you read by swiping.</span></div>
+  </div>
+
+  <h2>A look inside</h2>
+  <div class="shots" id="shots" aria-label="App screenshots"></div>
+
+  <h2>Why people like it</h2>
+  <ul class="pts">
+    <li>Swipe up for the next card. No menus to dig through.</li>
+    <li>It remembers what you’ve seen, so facts don’t repeat.</li>
+    <li>It saves what you read, so some of it opens without internet.</li>
+    <li>Installed, it opens full screen, with no browser bar.</li>
+  </ul>
+  <footer>Music from Audius. Facts from Wikipedia, stories from Wikisource.</footer>
+</main>
+
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-t">
+  <div class="card"><h3 id="sh-t"></h3><ol id="sh-s"></ol><button id="sh-x">Got it</button></div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const ua=navigator.userAgent,
+ios=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1),
+inApp=/FBAN|FBAV|Instagram|TikTok|Snapchat|MicroMessenger/i.test(ua),
+standalone=matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+if(standalone)location.replace("app.html");
+if("serviceWorker" in navigator&&/^https?:/.test(location.protocol))navigator.serviceWorker.register("sw.js").catch(()=>{});
+
+/* screenshots: drop shot1.png to shot4.png next to this page and they appear here; until then a drawn preview shows */
+const SH=[
+ {c:"linear-gradient(160deg,#33415c,#0b1016 80%)",t:"Facts",h:"Frank Lampard",s:"English footballer"},
+ {c:"linear-gradient(160deg,#1f8a4c,#0b1016 80%)",t:"Sports",h:"Old Trafford",s:"Football stadium"},
+ {c:"linear-gradient(160deg,#5b3fc4,#0b1016 80%)",t:"Music",h:"Song title",s:"Artist name",art:1},
+ {c:"#16110c",t:"Stories",h:"A classic tale",s:"About 8 min read"}
+];
+const box=$("#shots");
+SH.forEach((m,i)=>{const d=document.createElement("div");d.className="shot";
+ const img=new Image();img.src="shot"+(i+1)+".png";img.alt="InfoScroll "+m.t+" screen";
+ img.onerror=()=>{img.remove();d.innerHTML=`<div class="mock" style="background:${m.c}">${m.art?'<div class="art"></div>':''}<i>${m.t}</i><b>${m.h}</b><small>${m.s}</small><u></u><u></u><u></u></div>`;d.setAttribute("role","img");d.setAttribute("aria-label","Preview of the "+m.t+" tab")};
+ d.append(img);box.append(d)});
+
+/* install */
+let dp=null;
+addEventListener("beforeinstallprompt",e=>{e.preventDefault();dp=e});
+const done=()=>{$("#st").textContent="Installed. Open InfoScroll from your home screen.";$("#inst").style.display="none"};
+addEventListener("appinstalled",done);
+function help(){
+ const t=$("#sh-t"),o=$("#sh-s");
+ if(ios){t.textContent="Install on iPhone";o.innerHTML="<li>Open this page in <b>Safari</b>.</li><li>Tap the <b>Share</b> button.</li><li>Choose <b>Add to Home Screen</b>, then tap <b>Add</b>.</li>"}
+ else if(inApp){t.textContent="Open in your browser first";o.innerHTML="<li>Tap the <b>⋮</b> or <b>…</b> menu in this app.</li><li>Choose <b>Open in browser</b> or <b>Open in Chrome</b>.</li><li>Then tap <b>Install app</b> again.</li>"}
+ else{t.textContent="Install on Android";o.innerHTML="<li>Tap the <b>⋮</b> menu in Chrome.</li><li>Choose <b>Install app</b> (or <b>Add to Home screen</b>).</li><li>Open <b>InfoScroll</b> from your home screen.</li>"}
+ $("#sheet").classList.add("on");$("#sh-x").focus()}
+$("#inst").onclick=async()=>{if(dp){dp.prompt();const r=await dp.userChoice;dp=null;if(r.outcome==="accepted")done();return}help()};
+$("#sh-x").onclick=()=>$("#sheet").classList.remove("on");
+$("#sheet").onclick=e=>{if(e.target.id==="sheet")$("#sheet").classList.remove("on")};
+addEventListener("keydown",e=>{if(e.key==="Escape")$("#sheet").classList.remove("on")});
+</script>
+</body>
+</html>
