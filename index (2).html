@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1016">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="InfoScroll">
+<title>InfoScroll</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0b1016;--paper:#f2f4f7;--dim:#b8c0cc}
+*{box-sizing:border-box;margin:0}
+[hidden]{display:none!important}
+html,body{height:100%;background:#05080c;color:var(--paper);font-family:'DM Sans',system-ui,sans-serif;overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
+:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.app{position:relative;width:min(100%,520px);height:100dvh;margin:0 auto;background:var(--ink);overflow:hidden}
+.feed{height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;overscroll-behavior:contain}
+.feed::-webkit-scrollbar{display:none}
+.card{--c:#33415c;position:relative;height:100dvh;scroll-snap-align:start;scroll-snap-stop:always;overflow:hidden;display:flex;align-items:flex-end;background:linear-gradient(160deg,var(--c),var(--ink) 80%)}
+.music{--c:#5b3fc4}.artists{--c:#b8374f}.actors{--c:#c48f22}.places{--c:#1a8a80}.history{--c:#3f68b8}.news{--c:#4a5a72}.books{--c:#8a5a2b}.sports{--c:#1f8a4c}.more{--c:#3b4a66}
+.card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.card::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(5,8,12,.95) 10%,rgba(5,8,12,.55) 45%,rgba(5,8,12,.12) 70%,rgba(5,8,12,.55))}
+.body{position:relative;z-index:2;width:100%;padding:0 80px calc(30px + env(safe-area-inset-bottom)) 20px}
+.views{display:inline-block;font-size:.82rem;font-weight:500;padding:3px 10px;border-radius:99px;background:rgba(255,255,255,.16);backdrop-filter:blur(6px);margin-bottom:10px}
+h2{font-family:Fraunces,Georgia,serif;font-weight:800;font-size:clamp(1.9rem,8vw,2.8rem);line-height:1.05;letter-spacing:-.02em}
+.desc{color:var(--dim);margin:6px 0 12px;font-size:.95rem}
+.sum{font-size:1.02rem;line-height:1.5;max-width:44ch}
+.src{display:inline-block;margin-top:12px;font-size:.82rem;color:var(--dim);text-underline-offset:3px}
+.msg .btn{margin-top:16px;padding:10px 20px;border-radius:99px;background:#fff;color:var(--ink);font-weight:700}
+.ld{display:grid;place-items:center;color:var(--dim)}
+.ld::after{display:none}
+.top{position:absolute;z-index:5;top:0;left:0;right:0;padding:calc(10px + env(safe-area-inset-top)) 12px 14px;background:linear-gradient(rgba(5,8,12,.8),transparent)}
+.tabs{display:flex;justify-content:center;gap:24px}
+.tab{padding:6px 2px;font-weight:700;color:var(--dim);border-bottom:2px solid transparent}
+.tab[aria-selected=true]{color:#fff;border-color:#fff}
+.chips{display:flex;gap:8px;overflow-x:auto;margin-top:8px;scrollbar-width:none}
+.chips[hidden]{display:none}
+.chip{flex:none;padding:5px 13px;border-radius:99px;border:1px solid rgba(255,255,255,.35);font-size:.85rem;background:rgba(5,8,12,.4)}
+.chip[aria-pressed=true]{background:#fff;color:var(--ink);border-color:#fff}
+.rail{position:absolute;z-index:5;right:12px;bottom:calc(30px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:10px}
+.rb{width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,.16);backdrop-filter:blur(8px);display:grid;place-items:center}
+.rb svg{width:26px;height:26px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.lw{position:absolute;z-index:4;right:12px;bottom:calc(265px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:3px}.rc{text-align:center;line-height:1.1}.rc b{display:block;font-size:.95rem}.rc span{font-size:.7rem;color:var(--dim)}
+.like[aria-pressed=true] svg{fill:#ff4d6d;stroke:#ff4d6d;animation:pop .28s}
+@keyframes pop{50%{transform:scale(1.3)}}
+#sname{font-size:.72rem;color:#fff;text-shadow:0 1px 4px #000;max-width:64px;text-align:center;line-height:1.1}
+.sheet{position:absolute;z-index:8;left:0;right:0;bottom:0;background:#141b24;border-radius:20px 20px 0 0;padding:18px 18px calc(22px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .25s;visibility:hidden}
+.sheet.open{transform:none;visibility:visible}
+.sheet h3{font-family:Fraunces,serif;font-size:1.2rem}
+.snd{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.row{display:flex;gap:12px;align-items:center}
+.row input{flex:1;accent-color:#fff}
+.toast{position:absolute;z-index:9;top:calc(150px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:rgba(255,255,255,.92);color:var(--ink);padding:6px 16px;border-radius:99px;font-weight:700;font-size:.9rem;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.on{opacity:1}
+.splash{position:absolute;z-index:20;inset:0;background:var(--ink);display:flex;flex-direction:column;justify-content:center;padding:32px;gap:14px;background:linear-gradient(160deg,#2a2166,var(--ink) 65%)}
+.splash h1{font-family:Fraunces,serif;font-size:3.2rem;font-weight:800;letter-spacing:-.03em;line-height:1}
+.splash p{color:var(--dim);max-width:34ch}
+.splash .go{padding:14px;border-radius:99px;background:#fff;color:var(--ink);font-weight:700;margin-top:10px}
+.splash .skip{color:var(--dim);text-decoration:underline;text-underline-offset:3px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+#mute[aria-pressed=true]{opacity:.55}#mute[aria-pressed=true]::after{content:"";position:absolute;width:30px;height:2px;background:#fff;transform:rotate(-45deg)}#mute{position:relative}
+.np{display:block;margin-top:8px;text-align:center;font-size:.78rem;color:var(--dim);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.srow{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+.sw{position:relative;flex:1;min-width:0}
+.menu{position:relative;flex:none}
+.ib{width:44px;height:44px;border-radius:50%;padding:0;overflow:hidden;border:2px solid rgba(255,255,255,.7);display:block}
+.ib img{width:100%;height:100%;display:block}
+.mpop{position:absolute;right:0;top:calc(100% + 8px);z-index:7;min-width:210px;background:#141b24;border-radius:14px;padding:16px;text-align:center;box-shadow:0 12px 30px rgba(0,0,0,.5)}
+.mpop p{font-size:.9rem;color:var(--dim);margin-bottom:12px}
+.cbtn{display:block;padding:11px 18px;border-radius:99px;background:#fff;color:var(--ink);font-weight:700;text-decoration:none}
+.search{display:flex;align-items:center;gap:10px;height:44px;padding:0 14px;border-radius:99px;background:rgba(255,255,255,.14);backdrop-filter:blur(10px)}
+.search svg{width:20px;height:20px;fill:none;stroke:var(--dim);stroke-width:2;stroke-linecap:round;flex:none}
+.search input{flex:1;min-width:0;background:none;border:0;color:#fff;font:inherit;outline:none}
+.search input::placeholder{color:var(--dim)}
+.search:focus-within{box-shadow:0 0 0 2px #fff}
+.qx{font-size:1.5rem;line-height:1;color:var(--dim)}
+.sug{position:absolute;left:0;right:0;top:calc(100% + 6px);background:#141b24;border-radius:14px;max-height:60dvh;overflow-y:auto;box-shadow:0 12px 30px rgba(0,0,0,.5)}
+.sug button{display:flex;gap:12px;align-items:center;width:100%;padding:10px 12px;text-align:left}
+.sug button:hover,.sug button:focus-visible{background:rgba(255,255,255,.08)}
+.sug img{width:40px;height:40px;border-radius:8px;object-fit:cover;background:#26303c;flex:none}
+.sug b{display:block}.sug small{color:var(--dim)}
+.sug .none{padding:14px;color:var(--dim)}
+#auto{position:relative}
+.rb .ring{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);stroke-width:0}
+.ring circle{fill:none;stroke-width:3}
+.trk{stroke:rgba(255,255,255,.2)}
+.prg{stroke:#fff;stroke-dasharray:119.4;stroke-dashoffset:119.4;stroke-linecap:round}
+#ac{font-weight:700;font-size:1rem}
+#auto[aria-pressed=true]{background:rgba(255,255,255,.26)}
+.lbl{font-size:.75rem;color:var(--dim);margin-top:-6px;padding:2px 8px}
+.pb{position:absolute;z-index:6;top:0;left:0;height:3px;width:0;background:#fff;pointer-events:none}
+.tabs{gap:12px;overflow-x:auto;scrollbar-width:none;justify-content:safe center}.tab{font-size:.95rem;white-space:nowrap}
+.card img.bgb{filter:blur(30px) brightness(.55);transform:scale(1.25)}
+.card img.cv{inset:auto;top:calc(128px + env(safe-area-inset-top));left:50%;width:min(66vw,34dvh);height:auto;aspect-ratio:1;border-radius:14px;transform:translateX(-50%);box-shadow:0 18px 40px rgba(0,0,0,.55);z-index:1;cursor:pointer}
+.chs{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.chs .views{margin:0}
+.cbtn.g2{width:100%;margin-top:8px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;font-size:inherit}
+.card img.cv.bk{aspect-ratio:2/3;width:min(44vw,20dvh);object-fit:cover}.books .sum{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font-size:.95rem}
+.books{background:#16110c}.books::after{display:none}
+.books .pager{position:absolute;z-index:2;inset:calc(118px + env(safe-area-inset-top)) 0 0 0;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
+.books .pager::-webkit-scrollbar{display:none}
+.books .pager .pg{flex:none;width:100%;height:100%;scroll-snap-align:start;scroll-snap-stop:always;padding:8px 24px calc(96px + env(safe-area-inset-bottom));overflow-y:auto;font:1.02rem/1.6 Georgia,Fraunces,serif;color:#efe6d6}
+.books .cover{text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.books .cover .chs{justify-content:center}
+.hint{color:var(--dim);font-size:.9rem;margin-top:16px;text-align:center}
+.pgno{position:absolute;z-index:3;left:24px;bottom:calc(40px + env(safe-area-inset-bottom));font-size:.8rem;color:var(--dim)}
+.nostimer #auto,.nostimer #adur,.nostimer #sbtn,.nostimer #sname{display:none}
+.cvp{position:absolute;z-index:1;top:calc(128px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);width:min(44vw,20dvh);aspect-ratio:2/3;border-radius:14px;background:linear-gradient(160deg,#8a5a2b,#3b2a18);display:grid;place-items:center;font-size:3rem;box-shadow:0 18px 40px rgba(0,0,0,.55);cursor:pointer}
+.books .cvp{position:static;transform:none;width:min(34vw,15dvh);margin:0 auto 14px}
+.rdbtn{display:block;margin-top:14px;padding:11px 22px;border-radius:99px;background:#fff;color:var(--ink);font-weight:700}
+.reader{position:absolute;inset:0;z-index:15;background:#f4ecd8;color:#2a2118;display:flex;flex-direction:column}
+.rh{display:flex;align-items:center;gap:12px;padding:calc(10px + env(safe-area-inset-top)) 14px 8px;border-bottom:1px solid rgba(0,0,0,.1)}
+.rh .rb{background:rgba(0,0,0,.08);width:44px;height:44px;flex:none;font-size:1.4rem;color:#2a2118}
+.rt{min-width:0;text-align:left}.rt b{display:block;font-family:Fraunces,Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rt small{color:#6b5a45}
+.pages{flex:1;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior:contain}.pages::-webkit-scrollbar{display:none}
+.pg{flex:none;width:100%;scroll-snap-align:start;scroll-snap-stop:always;padding:16px 24px calc(34px + env(safe-area-inset-bottom));overflow-y:auto;font:1.08rem/1.62 Georgia,Fraunces,serif}
+.pg p{margin:0 0 .9em}
+.rl{position:absolute;inset:48px 0 0;display:grid;place-content:center;gap:14px;padding:30px;text-align:center;background:#f4ecd8;color:#2a2118}
+.rl button{padding:10px 20px;border-radius:99px;background:#2a2118;color:#f4ecd8;font-weight:700}
+#rfr{width:44px;height:44px;flex:none}
+.spin svg{animation:spin .7s}@keyframes spin{to{transform:rotate(360deg)}}
+.rst{display:block;margin:12px auto 0;color:var(--dim);text-decoration:underline;text-underline-offset:3px;font-size:.82rem}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="srow"><div class="sw"><form class="search" id="sf" role="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="q" type="search" placeholder="Search…" autocomplete="off" enterkeyhint="search" aria-label="Search Wikipedia"><button type="button" id="qx" class="qx" aria-label="Clear search" hidden>&times;</button></form><div class="sug" id="sug" hidden></div></div>
+      <button class="rb" id="rfr" aria-label="Refresh facts" title="Refresh"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 10-2.3 5.7M20 4v7h-7"/></svg></button>
+      <div class="menu"><button class="ib" id="ibtn" aria-label="Menu" aria-haspopup="true" aria-expanded="false"><img src="data:image/png;base64,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" alt=""></button>
+        <div class="mpop" id="mpop" hidden><p>For advertising</p><a class="cbtn" id="contact" href="#">Contact us</a><button class="cbtn g2" id="shr">Share app</button><button class="cbtn g2" id="ofl">Offline view</button><button class="rst" id="rst">Reset seen facts</button></div></div>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Feeds">
+      <button class="tab" role="tab" data-t="all" aria-selected="true">All</button>
+      <button class="tab" role="tab" data-t="popular" aria-selected="false">Popular</button>
+      <button class="tab" role="tab" data-t="news" aria-selected="false">News</button>
+      <button class="tab" role="tab" data-t="sports" aria-selected="false">Sports</button>
+      <button class="tab" role="tab" data-t="music" aria-selected="false">Music</button>
+      <button class="tab" role="tab" data-t="books" aria-selected="false">Stories</button>
+    </div>
+    <a class="np" id="np" target="_blank" rel="noopener" hidden></a>
+  </div>
+  <div class="pb" id="pb"></div>
+  <main class="feed" id="feed" tabindex="0" aria-label="Facts"></main>
+  <div class="rail">
+    <button class="rb" id="auto" aria-pressed="false" aria-label="Auto-scroll"><svg class="ring" viewBox="0 0 44 44"><circle class="trk" cx="22" cy="22" r="19"/><circle class="prg" id="prg" cx="22" cy="22" r="19"/></svg><span id="ac">▶</span></button>
+    <button class="lbl" id="adur" aria-label="Change auto-scroll time">8s</button>
+    <button class="rb" id="sbtn" aria-label="Change ambient sound"><svg viewBox="0 0 24 24"><path d="M3 12h2M7 8v8M11 5v14M15 8v8M19 10v4M21 12h0"/></svg></button>
+    <div id="sname"></div>
+    <button class="rb" id="mute" aria-pressed="false" aria-label="Mute"><svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4zM16.5 9a4 4 0 010 6"/></svg></button>
+  </div>
+  <div class="reader" id="rd" hidden>
+    <div class="rh"><button class="rb" id="rx" aria-label="Close book">←</button><div class="rt"><b id="rtt"></b><small id="rpg"></small></div></div>
+    <div class="pages" id="pgs" tabindex="0" aria-label="Book pages"></div>
+    <div class="rl" id="rl"></div>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+  <div class="splash" id="splash">
+    <h1>Info<br>Scroll</h1>
+    <p>Swipe through facts about music, artists, actors and places, with slow, soothing songs playing underneath.</p>
+    <button class="go" id="go">Tap to begin</button>
+    <button class="skip" id="skip">Continue without sound</button>
+    <p style="font-size:.8rem">On iPhone, turn off silent mode to hear the sound.</p>
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s),feed=$("#feed");
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const nf=new Intl.NumberFormat("en",{notation:"compact",maximumFractionDigits:1});
+const pad=n=>String(n).padStart(2,"0");
+const API="https://en.wikipedia.org/api/rest_v1/",MET="https://wikimedia.org/api/rest_v1/metrics/pageviews/";
+const j=async u=>{const r=await fetch(u);if(!r.ok)throw new Error(r.status);return r.json()};
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const k=Math.random()*(i+1)|0;[a[i],a[k]]=[a[k],a[i]]}return a};
+const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}};
+const store=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+
+/* ---------- no-repeat memory (per tab, saved on the phone) ---------- */
+const SEEN=load("is_seen",{}),SESS={};let seenT;
+const pick=a=>a[Math.random()*a.length|0],tt2=t=>t.replace(/_/g," ");
+const isSeen=(k,tab=S.tab)=>tab!=="search"&&tab!=="offline"&&!(tab==="books"&&S.bq)&&(!!SEEN[tab]?.[k]||!!SESS[tab]?.has(k));
+function markSeen(tab,k){if(tab==="search"||tab==="offline"||!k)return;const m=SEEN[tab]??={};if(m[k])return;m[k]=1;const ks=Object.keys(m);if(ks.length>3000)ks.slice(0,500).forEach(x=>delete m[x]);clearTimeout(seenT);seenT=setTimeout(()=>store("is_seen",SEEN),600)}
+const BADT=/^(List of|Lists of|Category:|Template:|Wikipedia:|Portal:|File:|Deaths in)/;
+const SAVED=load("is_saved",[]);let savedT;
+function keep(c){if(!c||c.audio||c.textUrl||!c.text||SAVED.some(x=>x.key===c.key))return;SAVED.unshift({key:c.key,title:c.title,desc:c.desc,text:c.text,img:c.img,url:c.url,cat:c.cat,reads:c.reads,period:c.period});if(SAVED.length>150)SAVED.length=150;clearTimeout(savedT);savedT=setTimeout(()=>store("is_saved",SAVED),800)}
+
+/* ---------- books (Project Gutenberg via Gutendex) ---------- */
+const BOOK_PROXY=""; /* paste your Cloudflare Worker address here, e.g. https://infoscroll-books.yourname.workers.dev */
+const BK=load("is_books",{});let rtimer,RB=null;
+const prox=u=>BOOK_PROXY+"?url="+encodeURIComponent(u);
+let hop=0;
+const HOPS=()=>[u=>u,...(BOOK_PROXY?[prox]:[]),u=>"https://api.allorigins.win/raw?url="+encodeURIComponent(u),u=>"https://corsproxy.io/?url="+encodeURIComponent(u)];
+async function bfetch(u){const H=HOPS();let err;for(let i=0;i<H.length;i++){const k=(hop+i)%H.length;const ac=new AbortController(),t=setTimeout(()=>ac.abort(),15000);
+try{const r=await fetch(H[k](u),{signal:ac.signal});clearTimeout(t);if(!r.ok)throw new Error("HTTP "+r.status);hop=k;return r}catch(e){clearTimeout(t);err=e}}
+lastErr=err&&err.message||"network";throw err}
+async function bj(u){return(await bfetch(u)).json()}
+function bookCard(b){const f=b.formats||{},tk=Object.keys(f).find(x=>/^text\/plain/.test(x)&&/utf-8/i.test(x))||Object.keys(f).find(x=>/^text\/plain/.test(x));if(!tk||!(b.authors&&b.authors.length))return null;
+const sh=b.bookshelves||[];if(sh.some(x=>/Reference|Encyclopedias/.test(x)))return null;
+const au=b.authors[0],nm=au.name.split(", ").reverse().join(" "),lf=au.birth_year||au.death_year?(au.birth_year||"?")+"–"+(au.death_year||"?"):"";
+const cats=sh.filter(x=>/^Category: /.test(x)).map(x=>x.slice(10)).filter(x=>!/^(Novels|Classics of Literature)$/.test(x)).slice(0,3);
+const sm=((b.summaries||[])[0]||"").replace(/\(This is an automatically generated summary\.?\)/i,"").trim();
+return{key:"bk:"+b.id,id:b.id,cat:"books",title:b.title.replace(/\s*\n\s*/g," "),desc:nm,text:sm?trim(sm,230):"",img:f["image/jpeg"]||"",chips:[lf,...cats,b.download_count?nf.format(b.download_count)+" downloads":""].filter(Boolean),textUrl:f[tk],url:"https://www.gutenberg.org/ebooks/"+b.id}}
+const WSAPI="https://en.wikisource.org/w/api.php?format=json&formatversion=2&origin=*";
+async function wparse(title){const r=await j(WSAPI+`&action=parse&prop=text&redirects=1&disablelimitreport=1&disableeditsection=1&page=${encodeURIComponent(title)}`);return r.parse.text}
+function htmlDoc(h){const d=new DOMParser().parseFromString(h,"text/html");d.querySelectorAll("style,script,.mw-editsection,.ws-noexport,.noprint,sup.reference,.reference,.navbox,.licenseContainer,.pagenum,.mw-empty-elt,#headerContainer,.wst-header,.header_notes").forEach(x=>x.remove());return d}
+const wtxt=d=>{const o=[];d.querySelectorAll("h2,h3,h4,p,div.poem").forEach(el=>{if(el.tagName==="DIV"&&el.closest("p"))return;const t=el.textContent.replace(/\s+/g," ").trim();if(t.length>1)o.push(t)});return o.join("\n\n")};
+async function storyText(c){let ca;try{ca=await caches.open("is-books")}catch(e){}
+const ck="https://stories.local/"+encodeURIComponent(c.textUrl);const hit=ca&&await ca.match(ck);if(hit)return hit.text();
+const title=c.textUrl.slice(3),d=htmlDoc(await wparse(title));let txt=wtxt(d);
+if(txt.split(/\s+/).length<400){const base="/wiki/"+title.replace(/ /g,"_")+"/",seen=new Set(),subs=[];
+d.querySelectorAll("a[href]").forEach(a=>{let h=a.getAttribute("href")||"";if(h.includes("#")||h.includes("redlink"))return;try{h=decodeURIComponent(h)}catch(e){return}if(h.startsWith(base)&&!seen.has(h)){seen.add(h);subs.push(h.slice(6).replace(/_/g," "))}});
+const list=subs.slice(0,40),parts=[];for(let i=0;i<list.length;i+=4){const got=await Promise.all(list.slice(i,i+4).map(async t=>{try{return t.split("/").pop()+"\n\n"+wtxt(htmlDoc(await wparse(t)))}catch(e){return ""}}));parts.push(...got)}
+if(parts.join("").trim())txt=parts.filter(Boolean).join("\n\n")}
+if(!txt.trim())throw new Error("no text found on that page");
+if(ca)ca.put(ck,new Response(txt,{headers:{"Content-Type":"text/plain"}})).catch(()=>{});return txt}
+async function bookText(c){if(c.textUrl.startsWith("ws:"))return storyText(c);let ca;try{ca=await caches.open("is-books")}catch(e){}
+const hit=ca&&await ca.match(c.textUrl);if(hit)return hit.text();
+const r=await bfetch(c.textUrl);
+if(ca){ca.put(c.textUrl,r.clone()).then(()=>ca.keys()).then(async ks=>{for(let i=0;i<ks.length-8;i++)await ca.delete(ks[i])}).catch(()=>{})}
+return r.text()}
+function paginate(txt,LIM0=110){let t=txt.replace(/\r/g,"");const a=t.search(/\*\*\* ?START OF (THE|THIS) PROJECT GUTENBERG[^\n]*/i);if(a>=0)t=t.slice(t.indexOf("\n",a)+1);
+const b=t.search(/\*\*\* ?END OF (THE|THIS) PROJECT GUTENBERG/i);if(b>0)t=t.slice(0,b);
+const LIM=LIM0,units=[];
+t.split(/\n\s*\n/).map(p=>p.replace(/\s*\n\s*/g," ").trim()).filter(Boolean).forEach(p=>{const n=p.split(/\s+/).length;if(n<=LIM*1.4){units.push([p,n]);return}
+let buf="",bn=0;(p.match(/[^.!?]+[.!?]+["”’']*\s*|[^.!?]+$/g)||[p]).forEach(x=>{const m=x.trim().split(/\s+/).length;if(bn+m>LIM&&buf){units.push([buf.trim(),bn]);buf="";bn=0}buf+=x;bn+=m});if(buf.trim())units.push([buf.trim(),bn])});
+const pages=[];let cur=[],w=0;units.forEach(([p,n])=>{if(w+n>LIM&&cur.length){pages.push(cur);cur=[];w=0}cur.push(p);w+=n});if(cur.length)pages.push(cur);return pages}
+async function wsearch(q){for(const off of [Math.random()*300|0,0]){try{const r=await j(`https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&list=search&srsearch=${encodeURIComponent(q)}&srlimit=20&sroffset=${off}&srprop=`);const t=(r.query?.search||[]).map(x=>x.title).filter(x=>!BADT.test(x));if(t.length)return t}catch(e){return null}}return[]}
+const MORE={music:["singer","rock band","rapper","album","jazz musician","songwriter","record producer","pop singer","musical group"],artists:["painter","sculptor","photographer","contemporary artist","illustrator"],actors:["actor","actress","film director","comedian","film star"],places:["city","tourist attraction","national park","island","historic site","mountain","beach","capital city"]};
+const FBQ=["association football club","footballer","football stadium","football manager","football tournament","national football team","football rivalry"],OTQ=["Olympic athlete","marathon runner","basketball player","tennis player","rugby union player","cricketer","boxer","Formula One driver"];
+const FB=["Manchester_United_F.C.","Real_Madrid_CF","FC_Barcelona","Liverpool_F.C.","Arsenal_F.C.","Chelsea_F.C.","Manchester_City_F.C.","Bayern_Munich","Juventus_F.C.","AC_Milan","Inter_Milan","Paris_Saint-Germain_F.C.","Borussia_Dortmund","Atlético_Madrid","Tottenham_Hotspur_F.C.","AFC_Ajax","Gor_Mahia_F.C.","AFC_Leopards","Kenya_national_football_team","Tusker_F.C.","Lionel_Messi","Cristiano_Ronaldo","Pelé","Diego_Maradona","Johan_Cruyff","Zinedine_Zidane","Ronaldinho","Thierry_Henry","Didier_Drogba","Samuel_Eto'o","Mohamed_Salah","Sadio_Mané","Kylian_Mbappé","Erling_Haaland","Neymar","Luka_Modrić","McDonald_Mariga","Victor_Wanyama","Dennis_Oliech","George_Weah","Roger_Milla","Alex_Ferguson","Pep_Guardiola","José_Mourinho","FIFA_World_Cup","UEFA_Champions_League","Premier_League","La_Liga","Serie_A","Bundesliga","Africa_Cup_of_Nations","Copa_América","UEFA_European_Championship","Ballon_d'Or","Old_Trafford","Camp_Nou","Santiago_Bernabéu_Stadium","Anfield","Wembley_Stadium","Maracanã_Stadium","Moi_International_Sports_Centre","Offside_(association_football)","El_Clásico","Manchester_derby","Hand_of_God_(football)","Miracle_of_Istanbul","Leicester_City_F.C.","Brazil_national_football_team","Argentina_national_football_team","Nigeria_national_football_team"];
+const OT=["Usain_Bolt","Eliud_Kipchoge","David_Rudisha","Faith_Kipyegon","Paul_Tergat","Tegla_Loroupe","Wilson_Kipsang","Brigid_Kosgei","Michael_Jordan","LeBron_James","Serena_Williams","Roger_Federer","Lewis_Hamilton","Muhammad_Ali","Tiger_Woods","Kenya_national_rugby_sevens_team","Michael_Phelps","Simone_Biles","Mike_Tyson","Rafael_Nadal"];
+
+/* ---------- content ---------- */
+const CATS={music:"Music",artists:"Artists",actors:"Actors",places:"Places"};
+const SEEDS={
+music:["The_Beatles","Miles_Davis","Daft_Punk","Bob_Marley","Fela_Kuti","Nirvana_(band)","Kind_of_Blue","The_Dark_Side_of_the_Moon","Thriller_(album)","Bohemian_Rhapsody","Reggae","Jazz","Stradivarius","Aretha_Franklin"],
+artists:["Frida_Kahlo","Leonardo_da_Vinci","Vincent_van_Gogh","Pablo_Picasso","Yayoi_Kusama","Banksy","Claude_Monet","Hokusai","Jean-Michel_Basquiat","Georgia_O'Keeffe","Salvador_Dalí","Artemisia_Gentileschi"],
+actors:["Audrey_Hepburn","Charlie_Chaplin","Meryl_Streep","Bruce_Lee","Denzel_Washington","Marlon_Brando","Toshiro_Mifune","Cate_Blanchett","Sidney_Poitier","Viola_Davis","Katharine_Hepburn","Anthony_Hopkins"],
+places:["Machu_Picchu","Petra","Santorini","Kyoto","Lisbon","Venice","Angkor_Wat","Cappadocia","Marrakesh","Iceland","Table_Mountain","Havana","Zanzibar","Great_Barrier_Reef"]};
+const RX={music:/singer|musician|band|album|song|rapper|composer|disc jockey|guitarist|pianist|songwriter|record producer|orchestra|vocalist/i,artists:/painter|sculptor|artist|photographer|illustrator|cartoonist|architect/i,actors:/actor|actress|comedian|film director|filmmaker|television presenter/i,places:/city|town|country|island|mountain|river|capital|village|municipality|landmark|national park|region|lake|monument/i};
+const classify=d=>Object.keys(RX).find(k=>RX[k].test(d||""));
+const SAMPLES=[
+{key:"s1",title:"Miles Davis",desc:"American jazz trumpeter",text:"Kind of Blue, recorded in 1959, is widely regarded as the best-selling jazz album of all time. Most of it was recorded in just two sessions.",cat:"music",url:"https://en.wikipedia.org/wiki/Miles_Davis"},
+{key:"s2",title:"Frida Kahlo",desc:"Mexican painter",text:"Kahlo painted about 55 self-portraits, drawing on her own life, pain and Mexican folk traditions to create a style that was entirely her own.",cat:"artists",url:"https://en.wikipedia.org/wiki/Frida_Kahlo"},
+{key:"s3",title:"Kyoto",desc:"City in Japan",text:"Kyoto was Japan’s imperial capital for over a thousand years and still has around 1,600 Buddhist temples and 400 Shinto shrines.",cat:"places",url:"https://en.wikipedia.org/wiki/Kyoto"}];
+
+function trim(t,max=330){t=(t||"").replace(/\s+/g," ").trim();let o="";for(const x of t.split(/(?<=[.!?])\s+(?=[A-Z“"])/)){if(o&&(o+" "+x).length>max)break;o=(o+" "+x).trim()}return o.length>max+120?o.slice(0,max).replace(/\s+\S*$/,"")+"…":o}
+function thumb(s){const t=s?.thumbnail;if(!t)return null;const ow=s.originalimage?.width||0,w=[960,500,330].find(x=>x<=ow);return w?t.source.replace(/\/\d+px-/,`/${w}px-`):(s.originalimage?.source||t.source)}
+let lastErr="";const HINT="If you opened this file inside the Claude app, open it in Chrome or Safari instead: the in-app preview blocks internet requests.";
+const cache=new Map();
+function getCard(t,cat){t=t.replace(/ /g,"_");if(!cache.has(t))cache.set(t,j(API+"page/summary/"+encodeURIComponent(t)).then(s=>{const text=trim(s.extract);if(text.length<60||s.type==="disambiguation")return null;return{key:s.title,title:s.title,desc:s.description||"",text,img:thumb(s),url:s.content_urls?.desktop?.page||"https://en.wikipedia.org/wiki/"+encodeURIComponent(t),cat:cat||classify(s.description)||"more"}}).catch(e=>{lastErr=e.message;return null}));return cache.get(t)}
+const vc={};
+function monthViews(t){if(vc[t])return vc[t];const d=new Date(),a=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()-1,1)),b=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),0)),f=x=>x.toISOString().slice(0,10).replace(/-/g,"");
+return vc[t]=j(`${MET}per-article/en.wikipedia/all-access/user/${encodeURIComponent(t.replace(/ /g,"_"))}/monthly/${f(a)}/${f(b)}`).then(r=>r.items?.[0]?.views||0).catch(()=>0)}
+async function otd(){const d=new Date(),r=await j(`${API}feed/onthisday/events/${pad(d.getUTCMonth()+1)}/${pad(d.getUTCDate())}`);const e=shuffle(r.events||[]).find(x=>x.pages?.[0]?.thumbnail&&x.text.length>50);if(!e)return null;const p=e.pages[0];return{key:"otd:"+e.year+p.title,title:"On this day in "+e.year,desc:"",text:trim(e.text,300),img:thumb(p),url:p.content_urls?.desktop?.page||"https://en.wikipedia.org/wiki/Wikipedia:Selected_anniversaries",cat:"history"}}
+
+const sources={
+async all(){const cats=S.chip?[S.chip]:Object.keys(SEEDS),lists=cats.map(c=>shuffle(SEEDS[c]).filter(t=>!isSeen(tt2(t))).map(t=>[t,c])),pool=[];
+for(let i=0,any=true;any;i++){any=false;for(const l of lists)if(l[i]){pool.push(l[i]);any=true}}
+let first=!S.chip,fails=0,grows=0;
+async function grow(){if(grows++>30)return;const got=(await Promise.all(cats.map(async c=>{const t=await wsearch(pick(MORE[c]));return t&&t.map(x=>[x,c])}))).filter(Boolean);
+if(!got.length){fails++;return}const mx=Math.max(...got.map(g=>g.length));for(let i=0;i<mx;i++)got.forEach(g=>{const q=g[i];if(q&&!isSeen(q[0]))pool.push(q)})}
+return{async next(n){const out=[];if(first){first=false;const o=await otd().catch(()=>null);if(o&&!isSeen(o.key))out.push(o)}
+let guard=0;while(out.length<n&&guard++<12){if(!pool.length){await grow();if(!pool.length)break}
+(await Promise.all(pool.splice(0,n).map(([t,c])=>getCard(t,c)))).forEach(c=>c?out.push(c):fails++)}
+if(!out.length&&fails)throw new Error("offline");return out}}},
+async popular(){let day=0;const list=[];
+async function fetchDay(){while(day<8){day++;const x=new Date(Date.now()-day*864e5);try{const arts=(await j(`${MET}top/en.wikipedia/all-access/${x.getUTCFullYear()}/${pad(x.getUTCMonth()+1)}/${pad(x.getUTCDate())}`)).items[0].articles;
+const lab=day===1?"yesterday":"on "+x.toLocaleDateString("en",{month:"short",day:"numeric"});
+const l=arts.filter(a=>!/^(Main_Page|Special:|Wikipedia:|Portal:|Help:|File:|Category:|Talk:|-$)/.test(a.article)&&!BADT.test(a.article)&&!isSeen(tt2(a.article))).slice(0,60).map(a=>({...a,lab}));
+if(l.length){list.push(...l);return true}}catch(e){}}return false}
+if(!await fetchDay())throw new Error("offline");
+return{async next(n){const out=[];let guard=0;while(out.length<n&&guard++<8){if(!list.length&&!await fetchDay())break;
+(await Promise.all(list.splice(0,10).map(a=>getCard(a.article).then(c=>c&&{...c,reads:a.views,period:a.lab})))).forEach(c=>c&&out.push(c))}return out}}},
+async news(){const days=[0,1,2,3,4,5,6].map(i=>new Date(Date.now()-i*864e5));
+const rs=await Promise.all(days.map(x=>j(`${API}feed/featured/${x.getUTCFullYear()}/${pad(x.getUTCMonth()+1)}/${pad(x.getUTCDate())}`).then(r=>r.news||[]).catch(()=>null)));
+if(rs.every(r=>r===null))throw new Error("offline");const dup=new Set();
+const all=rs.flatMap(r=>r||[]).map(n=>{const p=(n.links||[]).find(l=>l.extract)||{},s=new DOMParser().parseFromString(n.story,"text/html").body.textContent.trim();return{key:"n:"+s.slice(0,40),title:trim(s,130),desc:"In the news",text:trim(p.extract,300),img:thumb(p),url:p.content_urls?.desktop?.page||"https://en.wikipedia.org/wiki/Portal:Current_events",cat:"news"}}).filter(c=>c.title&&!dup.has(c.key)&&dup.add(c.key));
+let cards=all.filter(c=>!isSeen(c.key));
+if(!cards.length&&all.length){cards=all.map(c=>({...c,noSeen:true}));toast("No new headlines. Showing recent ones")}
+return{async next(n){return cards.splice(0,n)}}},
+async sports(){const fq=shuffle(FB).filter(t=>!isSeen(tt2(t))),oq=shuffle(OT).filter(t=>!isSeen(tt2(t)));let fails=0,grows=0;
+async function refill(f){if(grows++>40)return;const t=await wsearch(pick(f?FBQ:OTQ));if(!t){fails++;return}t.forEach(x=>{if(!isSeen(x))(f?fq:oq).push(x)})}
+return{async next(n){const out=[];let guard=0;
+while(out.length<n&&guard++<10){const picks=[];
+for(let i=n-out.length;i>0;i--){const f=Math.random()<.8,q=f?fq:oq;if(!q.length)await refill(f);const t=q.shift()||(f?oq:fq).shift();if(t)picks.push(t)}
+if(!picks.length)break;
+(await Promise.all(picks.map(t=>getCard(t,"sports")))).forEach(c=>c?out.push({...c,cat:"sports"}):fails++)}
+if(!out.length&&fails)throw new Error("offline");return out}}},
+async music(){const GEN=["Electronic","Hip-Hop/Rap","Pop","R&B/Soul","Acoustic","Jazz","Rock","Alternative","Folk","Reggae","Lo-Fi","Dancehall","Latin","Funk","Blues","House","Trap","World","Soundtrack","Country"],QS=["afrobeats","gengetone","kenya","nairobi","swahili","amapiano","benga","gospel","love song","chill"];
+const pool=[],have=new Set();let grows=0,fails=0;const KQ=KEYQ;
+const mmss=d=>Math.floor(d/60)+":"+pad(Math.round(d%60));
+function toCard(t){const a=t.artwork||{},img=a["480x480"]||a["1000x1000"]||a["150x150"],key="au:"+t.id;
+if(!img||t.is_streamable===false||(t.duration||0)<60||(t.duration||0)>600||isSeen(key)||have.has(key))return null;have.add(key);
+const al=t.album_backlink?.playlist_name;
+return{key,id:t.id,cat:"music",title:t.title,desc:t.user?.name||"Unknown artist",text:al?"From the album "+al:"",img,genre:t.genre||"",mood:t.mood||"",year:(t.release_date||t.created_at||"").slice(0,4),dur:t.duration?mmss(t.duration):"",bpm:t.bpm?Math.round(t.bpm):0,plays:t.play_count||0,audio:`${AU}/tracks/${t.id}/stream?app_name=${APP}${KQ}`,url:"https://audius.co"+(t.permalink||"")}}
+async function grow(){if(grows++>40)return;const n=grows;let u;
+if(n%3===0)u=`${AU}/tracks/search?query=${encodeURIComponent(pick(QS))}&limit=40&offset=${(Math.random()*3|0)*40}&app_name=${APP}${KQ}`;
+else u=`${AU}/tracks/trending?genre=${encodeURIComponent(pick(GEN))}&time=${pick(["week","month","year","allTime"])}&limit=40&offset=${(Math.random()*3|0)*40}&app_name=${APP}${KQ}`;
+try{shuffle((await j(u)).data||[]).forEach(t=>{const c=toCard(t);if(c)pool.push(c)})}catch(e){fails++}}
+return{async next(n){const out=[];let guard=0;while(out.length<n&&guard++<10){if(!pool.length)await grow();if(!pool.length&&grows>40)break;out.push(...pool.splice(0,n-out.length))}
+if(!out.length&&fails)throw new Error("offline");return out}}},
+async offline(){const list=shuffle(SAVED);return{async next(n){return list.splice(0,n)}}},
+async books(){const q=S.bq,QS=shuffle(["short story","fairy tale","ghost story","detective story","fable","adventure story","love story","folk tale","humorous story","Sherlock Holmes","Grimm","Hans Christian Andersen","Edgar Allan Poe","Anton Chekhov","O. Henry","Rudyard Kipling","Mark Twain","Guy de Maupassant","Aesop","Arabian Nights"]);
+const have=new Set(),pool=[];let first=!q,fails=0,qi=0,qoff=0,done=false;
+function card(x){const t=x.title;if(/^(Index|Page|Portal|Author|Category|Wikisource|Template|Translation):|\(disambiguation\)/.test(t))return null;
+if(t.includes("/")&&(/\/(Chapter|Part|Book|Volume|Section|Page|Act|Scene|Canto|Letter|Preface|Contents|Index)\b/i.test(t)||/\/\d+$/.test(t)))return null;
+const wc=x.wordcount||0;if(wc<40)return null;const parts=t.split("/"),work=parts.length>1?parts.slice(0,-1).join(" / "):"";
+const sn=new DOMParser().parseFromString(x.snippet||"","text/html").body.textContent.replace(/\s+/g," ").trim();
+return{key:"ws:"+t,id:t,cat:"books",title:parts[parts.length-1],desc:work?"From "+work:"Wikisource · public domain",text:sn?trim(sn,200):"",img:"",chips:[wc<400?"Series or collection":"~"+Math.max(1,Math.round(wc/230))+" min read"],textUrl:"ws:"+t,url:"https://en.wikisource.org/wiki/"+encodeURIComponent(t.replace(/ /g,"_"))}}
+async function fill(){let qq,o;if(q){if(done)return;qq=q;o=qoff;qoff+=20}else{if(qi>=QS.length){done=true;return}qq=QS[qi++];o=(Math.random()*3|0)*20}
+try{const r=await j(WSAPI+`&action=query&list=search&srsearch=${encodeURIComponent(qq)}&srnamespace=0&srlimit=20&sroffset=${o}&srprop=wordcount|snippet`);const rs=r.query?.search||[];if(q&&rs.length<20)done=true;
+shuffle(rs).forEach(x=>{const c=card(x);if(c&&!have.has(c.key)&&!isSeen(c.key)){have.add(c.key);pool.push(c)}})}catch(e){fails++;lastErr=e.message;if(q)done=true}}
+return{async next(n){const out=[];if(first){first=false;Object.values(BK).filter(b=>b.textUrl&&b.textUrl.startsWith("ws:")).sort((a,b)=>b.t-a.t).slice(0,3).forEach(b=>{have.add(b.key);out.push({...b,resume:true})})}
+let guard=0;while(out.length<n&&guard++<12){if(!pool.length){if(done)break;await fill()}out.push(...pool.splice(0,n-out.length))}
+if(!out.length&&fails)throw new Error("offline");return out}}},
+async search(){const q=S.q,first=S.first,r=await j(`https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&list=search&srsearch=${encodeURIComponent(q)}&srlimit=15&srprop=`);
+const titles=[...new Set([first,...(r.query?.search||[]).map(x=>x.title)].filter(Boolean))];
+return{async next(n){const out=[];while(out.length<n&&titles.length)(await Promise.all(titles.splice(0,n).map(t=>getCard(t)))).forEach(c=>c&&out.push(c));return out}}},
+async you(){const likes=Object.values(S.liked).reverse(),cnt={};likes.forEach(c=>cnt[c.cat]=(cnt[c.cat]||0)+1);
+const cats=Object.keys(SEEDS).sort((a,b)=>(cnt[b]||0)-(cnt[a]||0));
+const rec=likes.length?cats.slice(0,2).flatMap(c=>shuffle(SEEDS[c]).filter(t=>!S.liked[t.replace(/_/g," ")]).slice(0,6).map(t=>[t,c])):[];
+return{async next(n){const out=likes.splice(0,n);if(out.length)return out;return(await Promise.all(rec.splice(0,n).map(([t,c])=>getCard(t,c)))).filter(Boolean)}}}};
+
+/* ---------- feed ---------- */
+const S={tab:"all",bq:"",chip:"",liked:load("is_likes",{}),byKey:{},gen:0,busy:false,done:false,err:null,src:null};
+const io=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting){const tb=en.target.dataset.tab,k=en.target.dataset.key;markSeen(tb,k);if(tb!=="offline")keep(S.byKey[k])}}),{root:feed,threshold:.6});
+const heart='<svg viewBox="0 0 24 24"><path d="M12 21C5 16.5 2 12.5 2 8.8 2 6 4.1 4 6.6 4c1.9 0 3.7 1 5.4 3 1.7-2 3.5-3 5.4-3C19.9 4 22 6 22 8.8c0 3.7-3 7.7-10 12.2z"/></svg>';
+function setReads(e,n,p){if(!n)return;const r=e.querySelector(".rc");r.querySelector("b").textContent=nf.format(n);r.title="Wikipedia reads "+p;r.hidden=false}
+function render(c){if(c.audio)return renderMusic(c);if(c.textUrl)return renderBook(c);S.byKey[c.key]=c;const e=document.createElement("section");e.className="card "+c.cat;e.dataset.key=c.key;e.dataset.tab=S.tab;(SESS[S.tab]??=new Set()).add(c.key);io.observe(e);
+e.innerHTML=`${c.img?`<img src="${esc(c.img)}" alt="" loading="lazy" crossorigin="anonymous" referrerpolicy="no-referrer">`:""}<div class="body"><h2>${esc(c.title)}</h2>${c.desc?`<p class="desc">${esc(c.desc)}</p>`:""}<p class="sum">${esc(c.text)}</p><a class="src" href="${esc(c.url)}" target="_blank" rel="noopener">Read on Wikipedia · CC BY-SA</a></div><div class="lw"><button class="rb like" aria-pressed="${!!S.liked[c.key]}" aria-label="Like ${esc(c.title)}">${heart}</button><div class="rc" hidden><b></b><span>reads</span></div></div>`;
+e.querySelector("img")?.addEventListener("error",ev=>{const i=ev.target;if(!i.dataset.r){i.dataset.r=1;i.src=i.src.replace(/\/\d+px-/,"/330px-")}else i.remove()});
+feed.append(e);
+if(c.reads)setReads(e,c.reads,c.period);else if(!["news","history"].includes(c.cat))monthViews(c.title).then(n=>setReads(e,n,"last month"))}
+const mio=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting&&S.tab==="music"){cur2=en.target.dataset.key;clearTimeout(mt);mt=setTimeout(()=>playMusic(cur2),350)}}),{root:feed,threshold:.7});let mt,cur2,autoBefore=false;
+async function playMusic(k){const c=S.byKey[k];if(!c||S.tab!=="music"||cur2!==k)return;au.src=c.audio;au.volume=1;try{await au.play()}catch(e){toast("Tap the album cover to play")}}
+function nextMusic(){const cs=[...feed.querySelectorAll(".card")],ch=Math.max(1,feed.clientHeight),idx=Math.round(feed.scrollTop/ch),n=cs[idx+1];if(n&&!n.classList.contains("ld"))feed.scrollTo({top:(idx+1)*ch,behavior:calm?"auto":"smooth"})}
+function renderMusic(c){S.byKey[c.key]=c;const e=document.createElement("section");e.className="card music";e.dataset.key=c.key;e.dataset.tab=S.tab;(SESS[S.tab]??=new Set()).add(c.key);
+const chips=[c.genre,c.mood,c.year,c.dur,c.bpm?c.bpm+" BPM":""].filter(Boolean).map(x=>`<span class="views">${esc(x)}</span>`).join("");
+e.innerHTML=`<img class="bgb" src="${esc(c.img)}" alt="" referrerpolicy="no-referrer"><img class="cv" src="${esc(c.img)}" alt="Cover art for ${esc(c.title)}. Tap to play or pause." referrerpolicy="no-referrer" onerror="this.remove()"><div class="body"><h2>${esc(c.title)}</h2><p class="desc">${esc(c.desc)}</p>${c.text?`<p class="sum">${esc(c.text)}</p>`:""}<div class="chs">${chips}</div><a class="src" href="${esc(c.url)}" target="_blank" rel="noopener">Listen on Audius · ${esc(c.desc)}</a></div><div class="lw"><button class="rb like" aria-pressed="${!!S.liked[c.key]}" aria-label="Like ${esc(c.title)}">${heart}</button>${c.plays?`<div class="rc" title="Plays on Audius"><b>${nf.format(c.plays)}</b><span>plays</span></div>`:""}</div>`;
+io.observe(e);mio.observe(e);feed.append(e)}
+function saveBK(c,page,total){BK[c.key]={key:c.key,id:c.id,cat:"books",title:c.title,desc:c.desc,text:c.text,chips:c.chips,textUrl:c.textUrl,url:c.url,page,total,t:Date.now()};
+const ks=Object.keys(BK);if(ks.length>30)ks.sort((a,b)=>BK[a].t-BK[b].t).slice(0,ks.length-30).forEach(x=>delete BK[x]);clearTimeout(rtimer);rtimer=setTimeout(()=>store("is_books",BK),500)}
+async function loadInline(e,c){if(e.dataset.ld)return;e.dataset.ld=1;const pg=e.querySelector(".pager"),slot=pg.querySelector(".more");
+try{const pages=paginate(await bookText(c),90);if(!pages.length)throw new Error("empty");e._n=pages.length;
+const frag=document.createDocumentFragment();pages.forEach((p,i)=>{const d=document.createElement("div");d.className="pg tx";d.dataset.i=i;frag.append(d)});slot.replaceWith(frag);
+const io2=new IntersectionObserver(es=>es.forEach(en=>{const d=en.target;if(en.isIntersecting&&!d.dataset.f){d.dataset.f=1;d.innerHTML=pages[+d.dataset.i].map(t=>`<p>${esc(t)}</p>`).join("")}}),{root:pg,rootMargin:"0px 200% 0px 200%"});
+pg.querySelectorAll(".tx").forEach(d=>io2.observe(d));
+const sv=BK[c.key]?.page||0;if(sv>0)requestAnimationFrame(()=>{pg.scrollLeft=(Math.min(sv,pages.length-1)+1)*pg.clientWidth})}
+catch(err){slot.innerHTML=`<p class="hint">Couldn’t load this story (${esc(err.message||"error")}).</p><button class="rdbtn">Try again</button>`;slot.querySelector("button").onclick=()=>{delete e.dataset.ld;slot.innerHTML='<p class="hint">Loading story…</p>';loadInline(e,c)}}}
+function renderBook(c){S.byKey[c.key]=c;const e=document.createElement("section");e.className="card books";e.dataset.key=c.key;e.dataset.tab=S.tab;(SESS[S.tab]??=new Set()).add(c.key);
+const chips=(c.chips||[]).map(x=>`<span class="views">${esc(x)}</span>`).join("");
+e.innerHTML=`<div class="pager"><div class="pg cover"><div class="cvp" aria-hidden="true">📖</div><h2>${esc(c.title)}</h2><p class="desc">${esc(c.desc)}</p>${c.resume?`<p class="sum">Continue from page ${c.page+1} of ${c.total}</p>`:c.text?`<p class="sum">${esc(c.text)}</p>`:""}<div class="chs">${chips}</div><p class="hint">Swipe left to read →</p></div><div class="pg more"><p class="hint">Loading story…</p></div></div><div class="pgno" hidden></div>`;
+const pg=e.querySelector(".pager"),no=e.querySelector(".pgno");
+pg.addEventListener("pointerdown",()=>loadInline(e,c),{once:true});pg.addEventListener("wheel",()=>loadInline(e,c),{once:true,passive:true});
+pg.addEventListener("scroll",()=>{loadInline(e,c);const p=Math.round(pg.scrollLeft/Math.max(1,pg.clientWidth));if(!e._n||p<1){no.hidden=true;return}no.hidden=false;no.textContent="Page "+p+" of "+e._n;saveBK(c,p-1,e._n)},{passive:true});
+io.observe(e);feed.append(e)}
+function upd(){if(!RB)return;$("#rpg").textContent="Page "+(RB.page+1)+" of "+RB.pages.length;const c=RB.c;
+BK[c.key]={key:c.key,id:c.id,cat:"books",title:c.title,desc:c.desc,img:c.img,chips:c.chips,textUrl:c.textUrl,url:c.url,page:RB.page,total:RB.pages.length,t:Date.now()};
+const ks=Object.keys(BK);if(ks.length>30)ks.sort((a,b)=>BK[a].t-BK[b].t).slice(0,ks.length-30).forEach(x=>delete BK[x]);
+clearTimeout(rtimer);rtimer=setTimeout(()=>store("is_books",BK),500)}
+function closeBook(){if(RB)RB.io?.disconnect();clearTimeout(rtimer);store("is_books",BK);RB=null;$("#rd").hidden=true}
+async function openBook(c){const rl=$("#rl"),box=$("#pgs");RB={c,pages:[],page:0};$("#rd").hidden=false;$("#rtt").textContent=c.title;$("#rpg").textContent=c.desc;box.innerHTML="";rl.hidden=false;rl.textContent="Loading book…";
+try{const txt=await bookText(c);if(!RB||RB.c!==c)return;const pages=paginate(txt);if(pages.length<1)throw new Error("empty");RB.pages=pages;
+const frag=document.createDocumentFragment();pages.forEach((p,i)=>{const d=document.createElement("div");d.className="pg";d.dataset.i=i;frag.append(d)});box.append(frag);
+RB.io=new IntersectionObserver(es=>es.forEach(en=>{const d=en.target;if(en.isIntersecting&&!d.dataset.f){d.dataset.f=1;d.innerHTML=RB.pages[+d.dataset.i].map(t=>`<p>${esc(t)}</p>`).join("")}}),{root:box,rootMargin:"0px 250% 0px 250%"});
+box.querySelectorAll(".pg").forEach(d=>RB.io.observe(d));
+RB.page=Math.min(pages.length-1,BK[c.key]?.page||0);rl.hidden=true;
+requestAnimationFrame(()=>{box.scrollLeft=RB.page*box.clientWidth;upd()})}
+catch(e){if(!RB||RB.c!==c)return;rl.innerHTML="";const p=document.createElement("p");p.textContent="Couldn’t load this story ("+(e.message||"unknown error")+"). Check your connection and try again.";const b=document.createElement("button");b.textContent="Close";b.onclick=closeBook;rl.append(p,b)}}
+function msg(t,b,btn,fn){const e=document.createElement("section");e.className="card msg";e.innerHTML=`<div class="body" style="padding-right:20px"><h2>${t}</h2><p class="sum">${b}</p>${btn?`<button class="btn">${btn}</button>`:""}</div>`;e.querySelector(".btn")?.addEventListener("click",fn);feed.append(e)}
+function empty(){
+if(S.tab==="books"&&S.err&&!S.bq)return msg("Couldn’t load stories","Reason: "+esc(lastErr||"unknown")+". Check your connection and try again.","Try again",()=>setTab("books"));
+if(S.tab==="books"&&S.bq)return msg("No stories found","Try a shorter title or an author’s name. Only free, public-domain stories are here.");
+if(S.tab==="offline")return msg("Nothing saved yet","Facts you view are saved on your phone automatically. Browse for a while while online, and they’ll be here without internet.","Back to online feed",()=>setTab("all"));
+if(S.tab==="search")return msg("No results","Try different words or a shorter search.");
+if(S.tab==="you")return msg("Nothing here yet","Tap the heart on a fact and it will appear here, along with more facts like it.");
+if(S.err){if(S.tab==="all"){SAMPLES.forEach(render);return msg("Can’t reach Wikipedia","Those were sample facts. The request failed"+(lastErr?" ("+esc(lastErr)+")":"")+". "+HINT,"Try again",()=>setTab("all"))}
+return msg("Couldn’t load this tab","Check your connection and try again. "+HINT,"Try again",()=>setTab(S.tab))}
+msg("Nothing here right now","Try again in a little while.","Try again",()=>setTab(S.tab))}
+async function more(){if(S.busy||S.done)return;S.busy=true;const g=S.gen;
+const ld=document.createElement("section");ld.className="card ld";ld.textContent="Loading facts…";feed.append(ld);
+let cs=[],tr=0;try{while(!cs.length&&tr++<8){const r=await S.src.next(4);if(g!==S.gen)return;if(!r.length)break;cs=r.filter(c=>c.noSeen||!isSeen(c.key))}}catch(e){S.err=e}
+if(g!==S.gen)return;ld.remove();cs.forEach(render);
+if(!cs.length){S.done=true;feed.querySelector(".card")?msg("That’s all for now","Pick another tab, or come back later for new facts."):empty()}
+S.busy=false}
+function setTab(t){const prev=S.tab;S.tab=t;$("#ofl").textContent=t==="offline"?"Back to online feed":"Offline view";if(t!=="books")S.bq="";qi.placeholder=t==="books"?"Search stories…":"Search…";const sp=x=>x==="music"||x==="books";if(sp(t)&&!sp(prev))autoBefore=AUTO.on;if(!sp(t)&&sp(prev))AUTO.on=autoBefore;if(t==="music")AUTO.on=true;else if(t==="books")AUTO.on=false;if(t!==prev){left=AUTO.dur;lastIdx=-1}
+document.body.classList.toggle("nostimer",t==="books");
+if(t==="music"){au.pause();nowPlaying(null);cur2=null}else if(prev==="music"){started?nextTrack():au.pause()}S.gen++;S.busy=false;S.done=false;S.err=null;
+document.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-selected",b.dataset.t===t));
+
+feed.innerHTML="";feed.scrollTop=0;let inst;
+S.src={async next(n){inst??=await sources[t]();return inst.next(n)}};more()}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{S.bq="";qi.value="";$("#qx").hidden=true;$("#sug").hidden=true;setTab(b.dataset.t)});
+feed.addEventListener("scroll",()=>{if(feed.scrollTop+feed.clientHeight*3>=feed.scrollHeight)more()},{passive:true});
+feed.addEventListener("click",e=>{const rb=e.target.closest(".rdbtn");if(rb)return openBook(S.byKey[rb.closest(".card").dataset.key]);const cv=e.target.closest(".cv");if(cv){const k=cv.closest(".card").dataset.key,c=S.byKey[k];if(c.textUrl)return openBook(c);if(!au.src.includes("/tracks/"+c.id+"/")){cur2=k;playMusic(k)}else au.paused?au.play().catch(()=>{}):au.pause();return}
+const b=e.target.closest(".like");if(!b)return;const k=b.closest(".card").dataset.key;
+if(S.liked[k])delete S.liked[k];else S.liked[k]=S.byKey[k];b.setAttribute("aria-pressed",!!S.liked[k]);store("is_likes",S.liked)});
+
+/* ---------- real songs from Audius (slow, vocal-friendly genres) ---------- */
+const pref=load("is_snd",{mute:false});
+const AUDIUS_KEY=""; /* optional: paste your free API key from audius.co/settings */
+const APP="InfoScroll",AU="https://api.audius.co/v1",KEYQ=AUDIUS_KEY?"&api_key="+encodeURIComponent(AUDIUS_KEY):"";
+const au=new Audio();au.preload="auto";au.muted=pref.mute;
+const SILENT="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
+let tracks=[],ti=-1,started=false,bad=0,tt;
+function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("on");clearTimeout(tt);tt=setTimeout(()=>e.classList.remove("on"),2200)}
+async function loadTracks(){const out=[],FAST=/aggressive|rowdy|fiery|energizing|defiant|excited|upbeat|ominous|gritty|empowering/i;
+await Promise.all(["Acoustic","R&B/Soul","Folk","Jazz","Blues"].map(async g=>{try{const r=await j(`${AU}/tracks/trending?genre=${encodeURIComponent(g)}&time=month&limit=25&app_name=${APP}${KEYQ}`);
+(r.data||[]).forEach(t=>{if(t.is_streamable===false||(t.duration||0)<90||(t.duration||0)>420)return;if(t.bpm&&t.bpm>105)return;if(t.mood&&FAST.test(t.mood))return;out.push({title:t.title,artist:t.user?.name,src:`${AU}/tracks/${t.id}/stream?app_name=${APP}${KEYQ}`,link:"https://audius.co"+(t.permalink||""),credit:"Audius"})})}catch(e){}}));
+if(out.length<5)await openverse(out);
+tracks=shuffle(out)}
+async function openverse(out){await Promise.all(["slow acoustic vocals","soul ballad","folk song","gentle piano vocal"].map(async q=>{try{const r=await j(`https://api.openverse.org/v1/audio/?q=${encodeURIComponent(q)}&category=music&license_type=commercial&page_size=20`);
+(r.results||[]).forEach(t=>{const d=t.duration||0;if(!t.url||!t.url.startsWith("https")||d<9e4||d>42e4)return;out.push({title:t.title||"Untitled",artist:t.creator||"Unknown artist",src:t.url,link:t.foreign_landing_url||t.url,credit:("CC "+(t.license||"").toUpperCase()+" "+(t.license_version||"")).trim()+" · Openverse"})})}catch(e){}}))}
+function fade(to,ms){const from=au.volume,st=performance.now(),f=n=>{const k=Math.min(1,(n-st)/ms);au.volume=from+(to-from)*k;if(k<1)requestAnimationFrame(f)};requestAnimationFrame(f)}
+function nowPlaying(t){const a=$("#np");a.hidden=!t;if(t){a.textContent="♪ "+t.title+" · "+(t.artist||"Unknown artist")+" · "+t.credit;a.href=t.link}}
+async function nextTrack(){if(!tracks.length)return;ti++;const t=tracks[ti%tracks.length];au.pause();au.src=t.src;au.volume=0;
+try{await au.play();bad=0;nowPlaying(t);fade(1,800)}catch(e){if(++bad<6)return nextTrack();started=false;nowPlaying(null);$("#sname").textContent="";toast("Couldn’t play music. Tap the sound button to try again.")}}
+async function begin(){started=true;au.src=SILENT;au.play().catch(()=>{});$("#sname").textContent="Loading…";await loadTracks();
+if(!tracks.length){started=false;$("#sname").textContent="";return toast("Couldn’t load music. Check your connection and Audius key, then tap the sound button.")}
+$("#sname").textContent="Next song";await nextTrack()}
+au.onended=()=>S.tab==="music"?(AUTO.on&&nextMusic()):nextTrack();au.onerror=()=>{if(S.tab==="music"){if(au.src&&!au.src.startsWith("data:")){toast("Skipping a song that won’t play");nextMusic()}}else if(started&&!au.src.startsWith("data:"))nextTrack()};
+function setMute(){$("#mute").setAttribute("aria-pressed",pref.mute);$("#mute").setAttribute("aria-label",pref.mute?"Unmute":"Mute")}
+$("#go").onclick=()=>{$("#splash").hidden=true;begin()};
+$("#skip").onclick=()=>{$("#splash").hidden=true};
+$("#sbtn").onclick=()=>{if(S.tab==="music")return nextMusic();if(!started)return begin();nextTrack();toast("Next song")};
+$("#mute").onclick=()=>{pref.mute=!pref.mute;store("is_snd",pref);au.muted=pref.mute;setMute()};
+setMute();
+/* ---------- search ---------- */
+const qi=$("#q");let st,qid=0;
+async function suggest(q){const id=++qid,box=$("#sug");try{const r=await j(`https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&generator=prefixsearch&gpssearch=${encodeURIComponent(q)}&gpslimit=7&prop=pageimages|description&piprop=thumbnail&pithumbsize=96`);if(id!==qid)return;
+const ps=Object.values(r.query?.pages||{}).sort((a,b)=>a.index-b.index);
+box.innerHTML=ps.length?ps.map(p=>`<button type="button" data-q="${esc(p.title)}"><img ${p.thumbnail?`src="${esc(p.thumbnail.source)}"`:""} alt=""><span><b>${esc(p.title)}</b><small>${esc(p.description||"")}</small></span></button>`).join(""):`<div class="none">No suggestions. Press enter to search anyway.</div>`}
+catch(e){if(id!==qid)return;box.innerHTML='<div class="none">Search needs an internet connection.</div>'}box.hidden=false}
+function runSearch(q,first){qid++;$("#sug").hidden=true;qi.blur();S.q=q;S.first=first||"";setTab("search")}
+qi.oninput=()=>{const q=qi.value.trim();$("#qx").hidden=!qi.value;if(S.tab==="books")return;clearTimeout(st);if(q.length<2){qid++;$("#sug").hidden=true;return}st=setTimeout(()=>suggest(q),250)};
+$("#sf").onsubmit=e=>{e.preventDefault();const q=qi.value.trim();if(q.length>1){if(S.tab==="books"){S.bq=q;qi.blur();setTab("books")}else runSearch(q)}};
+$("#sug").onclick=e=>{const b=e.target.closest("button");if(b){qi.value=b.dataset.q;$("#qx").hidden=false;runSearch(b.dataset.q,b.dataset.q)}};
+$("#qx").onclick=()=>{qi.value="";$("#qx").hidden=true;$("#sug").hidden=true;qid++;if(S.tab==="search")setTab("all");if(S.tab==="books"&&S.bq){S.bq="";setTab("books")}qi.focus()};
+qi.addEventListener("keydown",e=>{if(e.key==="Escape")$("#sug").hidden=true});
+document.addEventListener("click",e=>{if(!e.target.closest(".sw"))$("#sug").hidden=true});
+/* ---------- auto-scroll with a visible timer ---------- */
+const AUTO={...load("is_auto",{dur:8}),on:false},DURS=[5,8,12,20];
+let left=AUTO.dur,lastIdx=-1,lastT=performance.now();
+const calm=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmt=x=>Math.floor(x/60)+":"+pad(Math.floor(x%60));
+function autoUI(){const m=S.tab==="music";$("#auto").setAttribute("aria-pressed",AUTO.on);$("#ac").style.fontSize=m?".74rem":"";
+if(m){const d=au.duration,t=au.currentTime||0,ok=isFinite(d)&&d>0&&!!au.src&&!au.src.startsWith("data:"),p=ok?Math.min(1,t/d):0;
+$("#adur").textContent=ok?fmt(d):"-:--";$("#ac").textContent=ok?fmt(t):"▶";$("#prg").style.strokeDashoffset=119.4*(1-p);$("#pb").style.width=p*100+"%";return}
+const f=AUTO.on?left/AUTO.dur:1;$("#adur").textContent=AUTO.dur+"s";$("#ac").textContent=AUTO.on?Math.max(1,Math.ceil(left)):"▶";
+$("#prg").style.strokeDashoffset=AUTO.on?119.4*f:119.4;$("#pb").style.width=AUTO.on?(1-f)*100+"%":"0"}
+setInterval(()=>{const now=performance.now(),dt=(now-lastT)/1000;lastT=now;
+if(AUTO.on&&S.tab!=="music"&&$("#rd").hidden&&!document.hidden&&document.activeElement?.tagName!=="INPUT"){
+const ch=Math.max(1,feed.clientHeight),idx=Math.round(feed.scrollTop/ch);
+if(idx!==lastIdx){lastIdx=idx;left=AUTO.dur}
+else{left-=dt;if(left<=0){const nxt=feed.querySelectorAll(".card")[idx+1];
+if(nxt&&!nxt.classList.contains("ld")){feed.scrollTo({top:(idx+1)*ch,behavior:calm?"auto":"smooth"});left=AUTO.dur}
+else{left=0;if(S.done){AUTO.on=false;toast("Auto-scroll stopped: end of feed")}}}}}
+autoUI()},100);
+$("#auto").onclick=()=>{AUTO.on=!AUTO.on;left=AUTO.dur;lastIdx=-1;autoUI();toast(AUTO.on?(S.tab==="music"?"Auto-scroll on · next song when this one ends":"Auto-scroll on · "+AUTO.dur+"s per fact"):"Auto-scroll off")};
+$("#adur").onclick=()=>{if(S.tab==="music")return;AUTO.dur=DURS[(DURS.indexOf(AUTO.dur)+1)%DURS.length];left=AUTO.dur;store("is_auto",{dur:AUTO.dur});autoUI()};
+["touchstart","wheel","keydown"].forEach(ev=>feed.addEventListener(ev,()=>{left=AUTO.dur},{passive:true}));
+autoUI();
+/* ---------- menu: advertising contact ---------- */
+const WA_NUMBER="254706898654"; /* WhatsApp number in international format, no + or leading 0 */
+const mp=$("#mpop"),ib=$("#ibtn"),cb=$("#contact");
+const WA_TEXT="Hi, I’d like to advertise on InfoScroll.";
+cb.href="https://wa.me/"+WA_NUMBER+"?text="+encodeURIComponent(WA_TEXT);cb.target="_blank";cb.rel="noopener";
+/* Android Chrome: open the WhatsApp app directly, falling back to the wa.me page */
+cb.onclick=()=>{const ua=navigator.userAgent;if(/Android/.test(ua)&&/Chrome\//.test(ua)&&!/; wv\)/.test(ua)){location.href="intent://send/?phone="+WA_NUMBER+"&text="+encodeURIComponent(WA_TEXT)+"#Intent;scheme=whatsapp;package=com.whatsapp;S.browser_fallback_url="+encodeURIComponent(cb.href)+";end";return false}};
+const menu=o=>{mp.hidden=!o;ib.setAttribute("aria-expanded",o)};
+ib.onclick=()=>{menu(mp.hidden);$("#sug").hidden=true};
+document.addEventListener("click",e=>{if(!e.target.closest(".menu"))menu(false)});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")menu(false)});
+$("#rfr").onclick=()=>{const b=$("#rfr");b.classList.remove("spin");void b.offsetWidth;b.classList.add("spin");setTab(S.tab);toast("Fresh facts loaded")};
+$("#rst").onclick=()=>{Object.keys(SEEN).forEach(k=>delete SEEN[k]);Object.keys(SESS).forEach(k=>delete SESS[k]);store("is_seen",SEEN);menu(false);setTab(S.tab);toast("Seen facts reset")};
+$("#rx").onclick=closeBook;
+$("#pgs").addEventListener("scroll",()=>{if(!RB||!RB.pages.length)return;const b=$("#pgs"),p=Math.min(RB.pages.length-1,Math.round(b.scrollLeft/Math.max(1,b.clientWidth)));if(p!==RB.page){RB.page=p;upd()}},{passive:true});
+addEventListener("keydown",e=>{if($("#rd").hidden)return;const b=$("#pgs");if(e.key==="ArrowRight")b.scrollBy({left:b.clientWidth,behavior:"smooth"});else if(e.key==="ArrowLeft")b.scrollBy({left:-b.clientWidth,behavior:"smooth"});else if(e.key==="Escape")closeBook()});
+const SHARE_URL=""; /* optional: paste your public link here; otherwise this page’s own address is shared */
+$("#shr").onclick=async()=>{menu(false);const url=SHARE_URL||location.href.split("#")[0],text="InfoScroll: scroll through facts, football and music.";
+if(!/^https?:/.test(url))return toast("Put the app online first, then share its link");
+if(navigator.share){try{await navigator.share({title:"InfoScroll",text,url})}catch(e){}return}
+try{await navigator.clipboard.writeText(url);toast("Link copied. Paste it in WhatsApp")}catch(e){window.open("https://wa.me/?text="+encodeURIComponent(text+" "+url),"_blank")}};
+$("#ofl").onclick=()=>{menu(false);setTab(S.tab==="offline"?"all":"offline")};
+addEventListener("offline",()=>toast("You’re offline. Open the menu and tap Offline view"));
+if("serviceWorker" in navigator&&/^https?:/.test(location.protocol))navigator.serviceWorker.register("sw.js").catch(()=>{});
+const offStart=!navigator.onLine&&SAVED.length;
+setTab(offStart?"offline":"all");if(offStart)toast("Offline. Showing facts saved on your phone");
+</script>
+</body>
+</html>
